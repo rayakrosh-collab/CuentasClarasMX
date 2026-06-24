@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import com.example.cuentasclarasmx.data.DataRepository
 import com.example.cuentasclarasmx.ui.cuentas.CuentasScreen
+import com.example.cuentasclarasmx.ui.presupuestos.PresupuestoScreen
 import com.example.cuentasclarasmx.ui.transacciones.TransaccionesScreen
 
 @Composable
@@ -67,11 +68,7 @@ fun MainScreen(
             when (selectedTab) {
                 0 -> CuentasScreen(repository = repository, modifier = Modifier.fillMaxSize())
                 1 -> TransaccionesScreen(repository = repository, modifier = Modifier.fillMaxSize())
-                2 -> PlaceholderTab(
-                    title = "Presupuestos",
-                    description = "La gestión de presupuestos mensuales base cero por sobres estará disponible en la Fase 4 del proyecto.",
-                    icon = Icons.Default.DateRange
-                )
+                2 -> PresupuestoScreen(repository = repository, modifier = Modifier.fillMaxSize())
                 3 -> PlaceholderTab(
                     title = "Tablero y Reportes",
                     description = "El tablero principal con resúmenes, tendencias y gráficos visuales de tus gastos estará disponible en la Fase 10 del proyecto.",
