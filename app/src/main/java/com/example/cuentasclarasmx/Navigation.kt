@@ -9,11 +9,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.cuentasclarasmx.data.DataRepository
+import com.example.cuentasclarasmx.ui.cuentas.CuentasScreen
 import com.example.cuentasclarasmx.ui.main.MainScreen
 
 @Composable
 fun MainNavigation(repository: DataRepository) {
-  val backStack = rememberNavBackStack(Main)
+  val backStack = rememberNavBackStack(Cuentas)
 
   NavDisplay(
     backStack = backStack,
@@ -25,6 +26,12 @@ fun MainNavigation(repository: DataRepository) {
             onItemClick = { navKey -> backStack.add(navKey) },
             repository = repository,
             modifier = Modifier.safeDrawingPadding().padding(16.dp)
+          )
+        }
+        entry<Cuentas> {
+          CuentasScreen(
+            repository = repository,
+            modifier = Modifier.safeDrawingPadding()
           )
         }
       },

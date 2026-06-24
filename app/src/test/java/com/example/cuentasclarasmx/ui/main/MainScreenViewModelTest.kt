@@ -1,6 +1,8 @@
 package com.example.cuentasclarasmx.ui.main
 
 import com.example.cuentasclarasmx.data.DataRepository
+import com.example.cuentasclarasmx.data.local.entity.CategoriaEntity
+import com.example.cuentasclarasmx.data.local.entity.CuentaEntity
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -22,9 +24,10 @@ class MainScreenViewModelTest {
   }
 }
 
-import com.example.cuentasclarasmx.data.local.entity.CategoriaEntity
-
 private class FakeMyModelRepository : DataRepository {
   override val data: Flow<List<String>> = flow { emit(listOf("Sample")) }
   override val categorias: Flow<List<CategoriaEntity>> = flow { emit(emptyList()) }
+  override val cuentas: Flow<List<CuentaEntity>> = flow { emit(emptyList()) }
+  override suspend fun saveCuenta(cuenta: CuentaEntity) {}
+  override suspend fun deleteCuenta(cuenta: CuentaEntity) {}
 }

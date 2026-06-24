@@ -99,6 +99,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // Poblar Ajustes por defecto
                 db.execSQL("INSERT INTO ajustes (id, moneda, diaInicioMes, preferenciasJson) VALUES (1, 'MXN', 1, NULL)")
+
             }
         }
     }
