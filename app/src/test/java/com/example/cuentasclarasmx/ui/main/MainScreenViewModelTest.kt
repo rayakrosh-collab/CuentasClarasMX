@@ -22,6 +22,9 @@ class MainScreenViewModelTest {
   }
 }
 
+import com.example.cuentasclarasmx.data.local.entity.CategoriaEntity
+
 private class FakeMyModelRepository : DataRepository {
   override val data: Flow<List<String>> = flow { emit(listOf("Sample")) }
+  override val categorias: Flow<List<CategoriaEntity>> = flow { emit(emptyList()) }
 }

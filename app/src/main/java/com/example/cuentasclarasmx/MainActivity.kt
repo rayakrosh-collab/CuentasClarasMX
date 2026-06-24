@@ -14,9 +14,15 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
+    val repository = (application as CuentasClarasApp).repository
+
     enableEdgeToEdge()
     setContent {
-      CuentasClarasMXTheme { Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { MainNavigation() } }
+      CuentasClarasMXTheme { 
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { 
+          MainNavigation(repository = repository) 
+        } 
+      }
     }
   }
 }

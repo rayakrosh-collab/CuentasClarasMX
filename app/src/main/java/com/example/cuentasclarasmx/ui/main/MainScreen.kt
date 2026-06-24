@@ -9,14 +9,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
+import com.example.cuentasclarasmx.data.DataRepository
 import com.example.cuentasclarasmx.data.DefaultDataRepository
 import com.example.cuentasclarasmx.theme.CuentasClarasMXTheme
 
 @Composable
 fun MainScreen(
   onItemClick: (NavKey) -> Unit,
+  repository: DataRepository,
   modifier: Modifier = Modifier,
-  viewModel: MainScreenViewModel = viewModel { MainScreenViewModel(DefaultDataRepository()) },
+  viewModel: MainScreenViewModel = viewModel { MainScreenViewModel(repository) },
 ) {
   val state by viewModel.uiState.collectAsStateWithLifecycle()
   when (state) {

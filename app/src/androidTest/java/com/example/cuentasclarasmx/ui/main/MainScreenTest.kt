@@ -19,7 +19,7 @@ class MainScreenTest {
 
   @Test
   fun firstItem_exists() {
-    FAKE_DATA.forEach { composeTestRule.onNodeWithText("Hello $it!").assertExists() }
+    FAKE_DATA.forEach { composeTestRule.onNodeWithText("Hola $it!").assertExists() }
   }
 }
 
