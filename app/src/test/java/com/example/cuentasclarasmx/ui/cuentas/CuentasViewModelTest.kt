@@ -74,6 +74,47 @@ class CuentasViewModelTest {
         
         job.cancel()
     }
+
+    @Test
+    fun uiState_calculatesTransfersCorrectly() = runTest {
+        val testCuentas = listOf(
+            CuentaEntity(id = 1, nombre = "Efectivo", tipo = "efectivo", esPasivo = false, saldoInicial = 1500.0),
+            CuentaEntity(id = 2, nombre = "Nómina", tipo = "banco", esPasivo = false, saldoInicial = 8500.0),
+            CuentaEntity(id = 3, nombre = "Tarjeta Crédito", tipo = "crédito", esPasivo = true, saldoInicial = 3000.0)
+        )
+        // Transfer 500 from Nómina (2) to Efectivo (1)
+        // Transfer 1000 from Nómina (2) to Tarjeta Crédito (3) (Pago de tarjeta)
+        val testTransacciones = listOf(
+            TransaccionEntity(id = 1, tipo = "transferencia", fecha = System.currentTimeMillis(), monto = 500.0, descripcion = "Retiro cajero", cuentaId = 2, cuentaDestinoId = 1, subcategoriaId = null),
+            TransaccionEntity(id = 2, tipo = "transferencia", fecha = System.currentTimeMillis(), monto = 1000.0, descripcion = "Pago tarjeta", cuentaId = 2, cuentaDestinoId = 3, subcategoriaId = null)
+        )
+
+        val repository = FakeCuentasRepository(testCuentas, testTransacciones)
+        val viewModel = CuentasViewModel(repository)
+
+        val job = launch(testDispatcher) {
+            viewModel.uiState.collect {}
+        }
+
+        val state = viewModel.uiState.value
+
+        // Efectivo (1): 1500 + 500 = 2000
+        val efectivo = state.cuentas.first { it.entity.id == 1L }
+        assertEquals(2000.0, efectivo.saldoActual)
+
+        // Nómina (2): 8500 - 500 - 1000 = 7000
+        val nomina = state.cuentas.first { it.entity.id == 2L }
+        assertEquals(7000.0, nomina.saldoActual)
+
+        // Tarjeta Crédito (3): 3000 - 1000 = 2000 (disminuye la deuda)
+        val tarjeta = state.cuentas.first { it.entity.id == 3L }
+        assertEquals(2000.0, tarjeta.saldoActual)
+
+        // Patrimonio neto: (2000 + 7000) - 2000 = 7000
+        assertEquals(7000.0, state.patrimonioNeto)
+
+        job.cancel()
+    }
 }
 
 private class FakeCuentasRepository(

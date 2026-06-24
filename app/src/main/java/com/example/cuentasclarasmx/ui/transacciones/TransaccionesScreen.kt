@@ -142,8 +142,17 @@ fun TransaccionItem(
     val fechaStr = remember(t.fecha) { formatFecha.format(Date(t.fecha)) }
 
     val isIngreso = t.tipo == "ingreso"
-    val montoColor = if (isIngreso) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurface
-    val montoPrefix = if (isIngreso) "+" else "-"
+    val isTransfer = t.tipo == "transferencia"
+    val montoColor = when {
+        isIngreso -> Color(0xFF2E7D32)
+        isTransfer -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    val montoPrefix = when {
+        isIngreso -> "+"
+        isTransfer -> ""
+        else -> "-"
+    }
 
     Card(
         modifier = Modifier
@@ -164,7 +173,13 @@ fun TransaccionItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = t.descripcion.ifBlank { if (isIngreso) "Ingreso" else "Gasto" },
+                    text = t.descripcion.ifBlank {
+                        when {
+                            isIngreso -> "Ingreso"
+                            isTransfer -> "Transferencia"
+                            else -> "Gasto"
+                        }
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -173,19 +188,36 @@ fun TransaccionItem(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    SuggestionChip(
-                        onClick = {},
-                        label = { Text(item.cuentaNombre, fontSize = 11.sp) },
-                        enabled = false,
-                        modifier = Modifier.height(24.dp)
-                    )
-                    item.subcategoriaNombre?.let { subName ->
+                    if (isTransfer) {
                         SuggestionChip(
                             onClick = {},
-                            label = { Text(subName, fontSize = 11.sp) },
+                            label = { Text("Origen: ${item.cuentaNombre}", fontSize = 11.sp) },
                             enabled = false,
                             modifier = Modifier.height(24.dp)
                         )
+                        item.cuentaDestinoNombre?.let { destName ->
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text("Destino: $destName", fontSize = 11.sp) },
+                                enabled = false,
+                                modifier = Modifier.height(24.dp)
+                            )
+                        }
+                    } else {
+                        SuggestionChip(
+                            onClick = {},
+                            label = { Text(item.cuentaNombre, fontSize = 11.sp) },
+                            enabled = false,
+                            modifier = Modifier.height(24.dp)
+                        )
+                        item.subcategoriaNombre?.let { subName ->
+                            SuggestionChip(
+                                onClick = {},
+                                label = { Text(subName, fontSize = 11.sp) },
+                                enabled = false,
+                                modifier = Modifier.height(24.dp)
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
@@ -223,6 +255,13 @@ fun TransaccionFormDialog(
             cuentas.firstOrNull { it.id == transaccion?.cuentaId } ?: cuentas.firstOrNull()
         )
     }
+    var cuentaDestinoSeleccionada by remember {
+        mutableStateOf(
+            cuentas.firstOrNull { it.id == transaccion?.cuentaDestinoId }
+                ?: cuentas.firstOrNull { it.id != (cuentaSeleccionada?.id ?: 0L) }
+                ?: cuentas.firstOrNull()
+        )
+    }
     var subcategoriaSeleccionada by remember {
         mutableStateOf(
             subcategorias.firstOrNull { it.entity.id == transaccion?.subcategoriaId }?.entity
@@ -231,6 +270,7 @@ fun TransaccionFormDialog(
     var fechaMillis by remember { mutableStateOf(transaccion?.fecha ?: System.currentTimeMillis()) }
 
     var accountDropdownExpanded by remember { mutableStateOf(false) }
+    var cuentaDestinoDropdownExpanded by remember { mutableStateOf(false) }
     var categoryDropdownExpanded by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -251,10 +291,10 @@ fun TransaccionFormDialog(
                     .padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Selector de Tipo: Gasto / Ingreso (Segmented Control manual con Row)
+                // Selector de Tipo: Gasto / Ingreso / Transferencia (Segmented Control manual con Row)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Button(
                         onClick = { tipo = "gasto" },
@@ -262,7 +302,8 @@ fun TransaccionFormDialog(
                             containerColor = if (tipo == "gasto") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = if (tipo == "gasto") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
                         Text("Gasto")
                     }
@@ -272,9 +313,21 @@ fun TransaccionFormDialog(
                             containerColor = if (tipo == "ingreso") Color(0xFF2E7D32) else MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = if (tipo == "ingreso") Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
                         Text("Ingreso")
+                    }
+                    Button(
+                        onClick = { tipo = "transferencia" },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (tipo == "transferencia") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (tipo == "transferencia") MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.weight(1.2f),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        Text("Transferencia", maxLines = 1)
                     }
                 }
 
@@ -294,12 +347,14 @@ fun TransaccionFormDialog(
                     value = descripcion,
                     onValueChange = { descripcion = it },
                     label = { Text("Descripción") },
-                    placeholder = { Text("ej. Supermercado, Pago quincena") },
+                    placeholder = {
+                        Text(if (tipo == "transferencia") "ej. Traspaso entre cuentas" else "ej. Supermercado, Pago quincena")
+                    },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Cuenta Afectada
+                // Cuentas Afectadas
                 if (cuentas.isEmpty()) {
                     Text(
                         text = "Primero debes crear una cuenta en la pestaña Patrimonio.",
@@ -307,80 +362,155 @@ fun TransaccionFormDialog(
                         style = MaterialTheme.typography.bodySmall
                     )
                 } else {
-                    ExposedDropdownMenuBox(
-                        expanded = accountDropdownExpanded,
-                        onExpandedChange = { accountDropdownExpanded = it }
-                    ) {
-                        OutlinedTextField(
-                            value = cuentaSeleccionada?.nombre ?: "Seleccionar Cuenta",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Cuenta") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountDropdownExpanded) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
+                    if (tipo == "transferencia") {
+                        // Cuenta Origen
+                        ExposedDropdownMenuBox(
                             expanded = accountDropdownExpanded,
-                            onDismissRequest = { accountDropdownExpanded = false }
+                            onExpandedChange = { accountDropdownExpanded = it }
                         ) {
-                            cuentas.forEach { c ->
-                                DropdownMenuItem(
-                                    text = { Text(c.nombre) },
-                                    onClick = {
-                                        cuentaSeleccionada = c
-                                        accountDropdownExpanded = false
-                                    }
-                                )
+                            OutlinedTextField(
+                                value = cuentaSeleccionada?.nombre ?: "Seleccionar Cuenta Origen",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Cuenta Origen") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = accountDropdownExpanded,
+                                onDismissRequest = { accountDropdownExpanded = false }
+                            ) {
+                                cuentas.forEach { c ->
+                                    DropdownMenuItem(
+                                        text = { Text(c.nombre) },
+                                        onClick = {
+                                            cuentaSeleccionada = c
+                                            accountDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Cuenta Destino
+                        ExposedDropdownMenuBox(
+                            expanded = cuentaDestinoDropdownExpanded,
+                            onExpandedChange = { cuentaDestinoDropdownExpanded = it }
+                        ) {
+                            OutlinedTextField(
+                                value = cuentaDestinoSeleccionada?.nombre ?: "Seleccionar Cuenta Destino",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Cuenta Destino") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cuentaDestinoDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = cuentaDestinoDropdownExpanded,
+                                onDismissRequest = { cuentaDestinoDropdownExpanded = false }
+                            ) {
+                                cuentas.forEach { c ->
+                                    DropdownMenuItem(
+                                        text = { Text(c.nombre) },
+                                        onClick = {
+                                            cuentaDestinoSeleccionada = c
+                                            cuentaDestinoDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        if (cuentaSeleccionada?.id == cuentaDestinoSeleccionada?.id) {
+                            Text(
+                                text = "La cuenta de origen y destino no pueden ser la misma.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    } else {
+                        // Cuenta Única
+                        ExposedDropdownMenuBox(
+                            expanded = accountDropdownExpanded,
+                            onExpandedChange = { accountDropdownExpanded = it }
+                        ) {
+                            OutlinedTextField(
+                                value = cuentaSeleccionada?.nombre ?: "Seleccionar Cuenta",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Cuenta") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = accountDropdownExpanded,
+                                onDismissRequest = { accountDropdownExpanded = false }
+                            ) {
+                                cuentas.forEach { c ->
+                                    DropdownMenuItem(
+                                        text = { Text(c.nombre) },
+                                        onClick = {
+                                            cuentaSeleccionada = c
+                                            accountDropdownExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                // Subcategoría (Opcional, pero recomendada)
-                ExposedDropdownMenuBox(
-                    expanded = categoryDropdownExpanded,
-                    onExpandedChange = { categoryDropdownExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = subcategoriaSeleccionada?.nombre ?: "Seleccionar Categoría (Opcional)",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Categoría") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
+                // Subcategoría (Opcional, pero recomendada) - Solo si no es Transferencia
+                if (tipo != "transferencia") {
+                    ExposedDropdownMenuBox(
                         expanded = categoryDropdownExpanded,
-                        onDismissRequest = { categoryDropdownExpanded = false }
+                        onExpandedChange = { categoryDropdownExpanded = it }
                     ) {
-                        var lastHeader = ""
-                        subcategorias.forEach { item ->
-                            if (item.padreNombre != lastHeader) {
-                                lastHeader = item.padreNombre
+                        OutlinedTextField(
+                            value = subcategoriaSeleccionada?.nombre ?: "Seleccionar Categoría (Opcional)",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Categoría") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryDropdownExpanded) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = categoryDropdownExpanded,
+                            onDismissRequest = { categoryDropdownExpanded = false }
+                        ) {
+                            var lastHeader = ""
+                            subcategorias.forEach { item ->
+                                if (item.padreNombre != lastHeader) {
+                                    lastHeader = item.padreNombre
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = lastHeader,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontSize = 12.sp
+                                            )
+                                        },
+                                        onClick = {},
+                                        enabled = false
+                                    )
+                                }
                                 DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = lastHeader,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontSize = 12.sp
-                                        )
-                                    },
-                                    onClick = {},
-                                    enabled = false
+                                    text = { Text(text = "   ${item.entity.nombre}") },
+                                    onClick = {
+                                        subcategoriaSeleccionada = item.entity
+                                        categoryDropdownExpanded = false
+                                    }
                                 )
                             }
-                            DropdownMenuItem(
-                                text = { Text(text = "   ${item.entity.nombre}") },
-                                onClick = {
-                                    subcategoriaSeleccionada = item.entity
-                                    categoryDropdownExpanded = false
-                                }
-                            )
                         }
                     }
                 }
@@ -405,6 +535,7 @@ fun TransaccionFormDialog(
                 onClick = {
                     val montoVal = montoStr.toDoubleOrNull() ?: 0.0
                     val cuentaId = cuentaSeleccionada?.id ?: 0L
+                    val cuentaDestinoId = if (tipo == "transferencia") cuentaDestinoSeleccionada?.id else null
 
                     if (montoVal > 0 && cuentaId != 0L) {
                         val finalTransaccion = TransaccionEntity(
@@ -414,8 +545,8 @@ fun TransaccionFormDialog(
                             monto = montoVal,
                             descripcion = descripcion,
                             cuentaId = cuentaId,
-                            subcategoriaId = subcategoriaSeleccionada?.id,
-                            cuentaDestinoId = transaccion?.cuentaDestinoId,
+                            subcategoriaId = if (tipo == "transferencia") null else subcategoriaSeleccionada?.id,
+                            cuentaDestinoId = cuentaDestinoId,
                             fotoReciboUri = transaccion?.fotoReciboUri,
                             compraMsiId = transaccion?.compraMsiId,
                             recurrenteId = transaccion?.recurrenteId
@@ -423,7 +554,10 @@ fun TransaccionFormDialog(
                         onSave(finalTransaccion)
                     }
                 },
-                enabled = montoStr.toDoubleOrNull() != null && (montoStr.toDoubleOrNull() ?: 0.0) > 0 && cuentaSeleccionada != null
+                enabled = montoStr.toDoubleOrNull() != null && 
+                          (montoStr.toDoubleOrNull() ?: 0.0) > 0 && 
+                          cuentaSeleccionada != null &&
+                          (tipo != "transferencia" || (cuentaDestinoSeleccionada != null && cuentaSeleccionada?.id != cuentaDestinoSeleccionada?.id))
             ) {
                 Text("Guardar")
             }

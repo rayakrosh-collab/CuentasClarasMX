@@ -86,6 +86,42 @@ class TransaccionesViewModelTest {
 
         job.cancel()
     }
+
+    @Test
+    fun uiState_resolvesTransferDestinationAccountName() = runTest {
+        val testCuentas = listOf(
+            CuentaEntity(id = 1, nombre = "BBVA Débito", tipo = "débito", esPasivo = false, saldoInicial = 5000.0),
+            CuentaEntity(id = 2, nombre = "Efectivo", tipo = "efectivo", esPasivo = false, saldoInicial = 500.0)
+        )
+        val testTransacciones = listOf(
+            TransaccionEntity(
+                id = 1,
+                tipo = "transferencia",
+                fecha = System.currentTimeMillis(),
+                monto = 300.0,
+                descripcion = "Retiro",
+                cuentaId = 1,
+                cuentaDestinoId = 2,
+                subcategoriaId = null
+            )
+        )
+
+        val repository = FakeTransaccionesRepository(testTransacciones, testCuentas, emptyList())
+        val viewModel = TransaccionesViewModel(repository)
+
+        val job = launch(testDispatcher) {
+            viewModel.uiState.collect {}
+        }
+
+        val state = viewModel.uiState.value
+        assertEquals(1, state.transacciones.size)
+        val mappedTrans = state.transacciones[0]
+        assertEquals("BBVA Débito", mappedTrans.cuentaNombre)
+        assertEquals("Efectivo", mappedTrans.cuentaDestinoNombre)
+        assertEquals(null, mappedTrans.subcategoriaNombre)
+
+        job.cancel()
+    }
 }
 
 private class FakeTransaccionesRepository(

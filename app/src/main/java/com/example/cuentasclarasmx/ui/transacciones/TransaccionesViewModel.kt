@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 data class TransaccionConDetalles(
     val entity: TransaccionEntity,
     val cuentaNombre: String,
+    val cuentaDestinoNombre: String?,
     val subcategoriaNombre: String?
 )
 
@@ -55,8 +56,9 @@ class TransaccionesViewModel(private val repository: DataRepository) : ViewModel
             query.isBlank() || it.descripcion.contains(query, ignoreCase = true)
         }.map { t ->
             val cuentaName = cuentasMap[t.cuentaId]?.nombre ?: "Desconocida"
+            val cuentaDestinoName = t.cuentaDestinoId?.let { cuentasMap[it]?.nombre }
             val subName = t.subcategoriaId?.let { categoriasMap[it]?.nombre }
-            TransaccionConDetalles(t, cuentaName, subName)
+            TransaccionConDetalles(t, cuentaName, cuentaDestinoName, subName)
         }
 
         TransaccionesUiState(
