@@ -84,8 +84,8 @@ fun CuentasScreen(
                     )
                 }
             } else {
-                val activos = state.cuentas.filter { !it.esPasivo }
-                val pasivos = state.cuentas.filter { it.esPasivo }
+                val activos = state.cuentas.filter { !it.entity.esPasivo }
+                val pasivos = state.cuentas.filter { it.entity.esPasivo }
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -100,11 +100,11 @@ fun CuentasScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
-                        items(activos, key = { it.id }) { cuenta ->
+                        items(activos, key = { it.entity.id }) { cuentaConSaldo ->
                             CuentaItem(
-                                cuenta = cuenta,
+                                cuentaConSaldo = cuentaConSaldo,
                                 onClick = {
-                                    editingCuenta = cuenta
+                                    editingCuenta = cuentaConSaldo.entity
                                     showDialog = true
                                 }
                             )
@@ -120,11 +120,11 @@ fun CuentasScreen(
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
-                        items(pasivos, key = { it.id }) { cuenta ->
+                        items(pasivos, key = { it.entity.id }) { cuentaConSaldo ->
                             CuentaItem(
-                                cuenta = cuenta,
+                                cuentaConSaldo = cuentaConSaldo,
                                 onClick = {
-                                    editingCuenta = cuenta
+                                    editingCuenta = cuentaConSaldo.entity
                                     showDialog = true
                                 }
                             )
@@ -224,9 +224,10 @@ fun PatrimonioNetoCard(
 
 @Composable
 fun CuentaItem(
-    cuenta: CuentaEntity,
+    cuentaConSaldo: CuentaConSaldo,
     onClick: () -> Unit
 ) {
+    val cuenta = cuentaConSaldo.entity
     val format = remember { NumberFormat.getCurrencyInstance(Locale("es", "MX")) }
     val balanceColor = if (cuenta.esPasivo) {
         MaterialTheme.colorScheme.error
@@ -271,7 +272,7 @@ fun CuentaItem(
                 }
             }
             Text(
-                text = format.format(cuenta.saldoInicial),
+                text = format.format(cuentaConSaldo.saldoActual),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = balanceColor

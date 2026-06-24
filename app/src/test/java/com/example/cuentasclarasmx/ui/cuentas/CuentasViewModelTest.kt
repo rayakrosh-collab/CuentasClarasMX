@@ -3,6 +3,7 @@ package com.example.cuentasclarasmx.ui.cuentas
 import com.example.cuentasclarasmx.data.DataRepository
 import com.example.cuentasclarasmx.data.local.entity.CategoriaEntity
 import com.example.cuentasclarasmx.data.local.entity.CuentaEntity
+import com.example.cuentasclarasmx.data.local.entity.TransaccionEntity
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -74,11 +75,17 @@ class CuentasViewModelTest {
     }
 }
 
-private class FakeCuentasRepository(private val initialCuentas: List<CuentaEntity>) : DataRepository {
+private class FakeCuentasRepository(
+    private val initialCuentas: List<CuentaEntity>,
+    private val initialTransacciones: List<TransaccionEntity> = emptyList()
+) : DataRepository {
     override val data: Flow<List<String>> = flow { emit(emptyList()) }
     override val categorias: Flow<List<CategoriaEntity>> = flow { emit(emptyList()) }
     override val cuentas: Flow<List<CuentaEntity>> = flow { emit(initialCuentas) }
+    override val transacciones: Flow<List<TransaccionEntity>> = flow { emit(initialTransacciones) }
     
     override suspend fun saveCuenta(cuenta: CuentaEntity) {}
     override suspend fun deleteCuenta(cuenta: CuentaEntity) {}
+    override suspend fun saveTransaccion(transaccion: TransaccionEntity) {}
+    override suspend fun deleteTransaccion(transaccion: TransaccionEntity) {}
 }

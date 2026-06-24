@@ -1,20 +1,17 @@
 package com.example.cuentasclarasmx
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.example.cuentasclarasmx.data.DataRepository
-import com.example.cuentasclarasmx.ui.cuentas.CuentasScreen
 import com.example.cuentasclarasmx.ui.main.MainScreen
 
 @Composable
 fun MainNavigation(repository: DataRepository) {
-  val backStack = rememberNavBackStack(Cuentas)
+  val backStack = rememberNavBackStack(Main)
 
   NavDisplay(
     backStack = backStack,
@@ -24,12 +21,6 @@ fun MainNavigation(repository: DataRepository) {
         entry<Main> {
           MainScreen(
             onItemClick = { navKey -> backStack.add(navKey) },
-            repository = repository,
-            modifier = Modifier.safeDrawingPadding().padding(16.dp)
-          )
-        }
-        entry<Cuentas> {
-          CuentasScreen(
             repository = repository,
             modifier = Modifier.safeDrawingPadding()
           )
